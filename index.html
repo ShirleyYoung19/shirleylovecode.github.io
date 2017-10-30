@@ -229,6 +229,288 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://shirleylovecode.github.io/2017/10/30/类/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Shirley Yang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shirley Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/30/类/" itemprop="url">类</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-30T23:09:00+08:00">
+                2017-10-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在JavaScript中最初是没有类的概念的。但是在ES5中可以创建一个自定义类型来模拟类。</p>
+<h2 id="ES5中的近类结构"><a href="#ES5中的近类结构" class="headerlink" title="ES5中的近类结构"></a>ES5中的近类结构</h2><p>自定义类型： 首先创建一个构造函数，然后定义另外一个方法赋值给构造函数的原型。例如</p>
+<pre><code>var Person = function(name) {
+  this.name = name;
+}
+Person.prototype.sayName = function () {
+  console.log(this.name);
+}
+var person1 = new Person(&apos;Shirley&apos;);
+person1.sayName(); // Shirley
+person1 instanceof Person // true
+person1 instanceof Object // true
+</code></pre><h2 id="类的声明"><a href="#类的声明" class="headerlink" title="类的声明"></a>类的声明</h2><h4 id="基本的类的声明语法"><a href="#基本的类的声明语法" class="headerlink" title="基本的类的声明语法"></a>基本的类的声明语法</h4><p>上面的自定义类可以采用以下的类声明代码实现：<br>类似于对象字面量，但是属性和方法之间不用加逗号。</p>
+<pre><code>Class PersonClass = {
+    // 即上面定义的Person这个构造函数
+    constructor(name) {
+      this.name = name;
+    }
+    // sayName的方法其实是定义在PersonClass的Prototype上的
+    sayName() {
+        console.log(this.name);
+    }
+}
+
+var person = new PersonClass(&apos;Shirley&apos;);
+person.sayName(); // Shirley
+typeof PersonClass === &apos;function&apos; // true 这是一位类本身其实是自定义类的一个语法糖，所以本质还是函数
+typeof PersonClass.prototype.sayName === &apos;function&apos; // true
+person instanceof PersonClass; // true
+person instanceof Object; // true
+
+// 与函数不同的是，类属性不可被赋予新值，因此PersonClass.prototype就是一个只可读的类属性。
+Object.getOwnPropertyDescriptor(PersonClass, &apos;prototype&apos;) // {value: {constructor: ƒ, sayName: ƒ}, writable: false, enumerable: false, configurable: false}
+</code></pre><h4 id="使用类语法的注意点"><a href="#使用类语法的注意点" class="headerlink" title="使用类语法的注意点"></a>使用类语法的注意点</h4><ul>
+<li>函数声明可以被提升，但是类的声明就像是let一样，不能被提升，因此在真正执行类声明的语句之前，都是存放在临时死区中的。</li>
+<li>类声明中的所有语句都是要按照严格模式执行的</li>
+<li>在自定义类型中，要用Object.defineProperty()方法将其定义为不可枚举的，但是在类中方法都是不可枚举的。</li>
+<li>必须用new来调用Class,否则会报错“Class constructor PersonClass cannot be invoked without ‘new’”</li>
+<li>在类中不能更改类名</li>
+</ul>
+<p>了解这些之后，可以用其它的语法来创建PersonClass</p>
+<pre><code>let PersonClass = (function() {
+    &apos;use strict&apos;
+    const PersonClass = function(name) {
+        if(typeof new.target === &apos;undefined&apos;) {
+            throw new Error(&apos;必须用new操作符&apos;)
+        }
+        this.name = name;
+    }
+    Object.defineProperty(PersonClass.prototype, &apos;sayName&apos;, {
+        value: function () {
+            if(typeof new.target !== &apos;undefined&apos;) {
+                throw new Error(&apos;不能使用new操作符&apos;)
+            }
+            console.log(this.name);
+        },
+        enumerable: false,
+        writable: true,
+        configurable: true,
+    })
+    return PersonClass;
+}());
+</code></pre><h2 id="类表达式"><a href="#类表达式" class="headerlink" title="类表达式"></a>类表达式</h2><h4 id="基本的类表达式语法"><a href="#基本的类表达式语法" class="headerlink" title="基本的类表达式语法"></a>基本的类表达式语法</h4><pre><code>// 类声明
+class PersonClass {
+  constructor(name) {
+    this.name = name;
+  }
+}
+PersonClass.name; // &quot;PersonClass&quot;
+
+//类表达式
+let PersonClass = class {
+    contructor(name) {
+        this.name = name;
+    }
+}
+PersonClass.name; //按照书中的说法是&quot;&quot;,在Chrome控制台中结果是&quot;PersonClass.name&quot;
+</code></pre><p>类表达式与类声明基本上没有区别，除了写法不一致。两者都不能进行声明提前</p>
+<h4 id="命名表达式"><a href="#命名表达式" class="headerlink" title="命名表达式"></a>命名表达式</h4><p>就是将一个class赋值给一个变量。其中Person的name属性就是Person2。但是Person2本身并不是一个变量。</p>
+<pre><code> const Person = class Person2 {
+ constructor(name) {
+  this.name = name;
+ }
+ sayName(){
+  console.log(this.name);
+ }
+}
+Person.name; // Person2
+</code></pre><p>如果用非类的语法来模拟：</p>
+<pre><code>const Person = (function(){
+  &quot;use strict&quot;
+  const Person2 = function(name) {
+    if(typeof new.target === &apos;undefined&apos;) {
+      throw new Error(&apos;必须使用new操作符&apos;)
+    }
+    this.name = name;
+  }
+  Object.defineProperty(Person2.prototype, &apos;sayName&apos;, {
+    value: function(){
+      if(typeof new.target !== undefined) {
+        throw new Error(&apos;不能使用new操作付符&apos;);
+      }
+      console.log(this.name);
+     }
+     enumerable: false,
+     writable: true,
+     configurable: true,
+  })
+  return Person2;
+}());
+</code></pre><h2 id="作为一等公民的类"><a href="#作为一等公民的类" class="headerlink" title="作为一等公民的类"></a>作为一等公民的类</h2><p>即类可以作为函数的参数，也可以作为函数的返回值，而且也可以将其的值赋值给某个变量。</p>
+<p>类也可以像函数一样立即执行,但是前面不能忘记new操作符</p>
+<pre><code>var person = new class{
+  constructor(name) {
+    this.name = name;
+  }
+  sayName() {
+    console.log(this.name);
+  }
+}
+</code></pre><h2 id="访问器属性"><a href="#访问器属性" class="headerlink" title="访问器属性"></a>访问器属性</h2><p>   可以在class中定义访问器属性</p>
+<pre><code>class CunstomHTMLElement {
+  constructor(element){
+    this.element = element;
+  }
+  get html() {
+    reutrn this.element.innerHTML;
+  }
+  set html(value) {
+    this.element.innerHTML = value;
+  }
+}
+</code></pre><p>如果是用非类的语法：</p>
+<pre><code>let CustomHTLMElement = (function(){
+  &apos;use strict&apos;
+  const CustomHTMLElement = function(element) {
+    if(typeof new.target === &apos;undefined&apos;) {
+      throw new Error(&apos;必须使用new操作符&apos;)
+    }
+    this.element = element;
+  }
+  Object.defineProperty(CustomHTMLElement.prototype, &apos;html&apos;, {
+    get: function() {
+      return this.element.innerHTML;
+    },
+    set: function(value) {
+      this.element.innerHTML = value;
+    },
+    enumerable: false,
+    configurable: true,
+  })
+  return CustomHTMLElement;
+}());
+</code></pre><h2 id="可计算成员名称"><a href="#可计算成员名称" class="headerlink" title="可计算成员名称"></a>可计算成员名称</h2><p>和对象一样，类的方法名称也可以是一个变量，例如</p>
+<pre><code>const methodName = &apos;sayName&apos;;
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+  [methodName]() {
+    console.log(this.name);
+  }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://shirleylovecode.github.io/2017/10/22/es6/iterator/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -310,7 +592,288 @@
 <p>生成器有趣的地方就在于，每次执行完一条yield语句之后就会停止执行，然后等待下一次迭代器调用next方法的时候才会继续执行。<br>同时，注意yield这个关键字只能在生成器函数内调用，而且不能穿过函数的边界（在生成器内部的函数内部调用也不可以）。</p>
 <h4 id="生成器函数表达式"><a href="#生成器函数表达式" class="headerlink" title="生成器函数表达式"></a>生成器函数表达式</h4><p>生成器也可以通过函数表达式来定义。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">var *createIterator = <span class="keyword">function</span> (items) &#123;</div><div class="line">  <span class="keyword">for</span> (var i = 0; i &lt; items.length; i ++) &#123;</div><div class="line">    yield items[i];</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <h4 id="生成器对象方法"><a href="#生成器对象方法" class="headerlink" title="生成器对象方法"></a>生成器对象方法</h4><p>生成器函数同样可以做为对象方法，例如：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">var object = &#123;</div><div class="line">  *createIterator(items) &#123;</div><div class="line">     <span class="keyword">for</span> (var i = 0; i &lt; items.length; i ++) &#123;</div><div class="line">    yield items[i];</div><div class="line">  &#125;</div><div class="line"> &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h4 id="For-of循环"><a href="#For-of循环" class="headerlink" title="For-of循环"></a>For-of循环</h4><p>ES6中数组、Map、Set和字符串都有内置的迭代器。因此可以采用for-of循环。<br>for-of循环相当于每一次循环都会调用一次迭代器的next方法。当迭代器的done值返回为true的时候，不用返回undefined而是直接结束。</p>
+<pre><code>var array = [1, 2, 3];
+for (var x of array) {
+    console.log(x);
+}
+</code></pre><h4 id="Symbol-iterator"><a href="#Symbol-iterator" class="headerlink" title="Symbol.iterator"></a>Symbol.iterator</h4><p>ES6中的集合的迭代器可以通过Symbol.iterator访问到。例如：</p>
+<pre><code>var iterator = array[Symbol.iterator]()
+iterator.next() // {value: 1, done: false}
+iterator.next() // {value: 2, done: false}
+iterator.next() // {value: 3, done: false}
+iterator.next() // {value: undefined, done: true}
+</code></pre><p>同样，可以一通过Symbol.iterator来将一个非迭代对象转换成迭代对象</p>
+<pre><code>var collections = {
+  items: [],
+  *[Symbol.iterator]() {
+    for (var x of this.items) {
+      yield x;
+    }
+  }
+}
+collections.items.push(1);
+collections.items.push(3);
+collections.items.push(32);
+for (var x of collections) {
+  console.log(x);
+}
+// 1
+// 3
+// 32
 
+##可迭代对象和for-of循环
+</code></pre><p>可迭代对象具有Symbol.iterator属相<br>ES6中数组、Map、Set和字符串都有内置的迭代器。因此可以采用for-of循环。<br>for-of循环相当于每一次循环都会调用一次迭代器的next方法。当迭代器的done值返回为true的时候，不用返回undefined而是直接结束。</p>
+<pre><code>var array = [1, 2, 3];
+for (var x of array) {
+    console.log(x);
+}
+</code></pre><h4 id="访问默认迭代器Symbol-iterator"><a href="#访问默认迭代器Symbol-iterator" class="headerlink" title="访问默认迭代器Symbol.iterator"></a>访问默认迭代器Symbol.iterator</h4><p>ES6中的集合的迭代器可以通过Symbol.iterator访问到。例如：</p>
+<pre><code>var iterator = array[Symbol.iterator]()
+iterator.next() // {value: 1, done: false}
+iterator.next() // {value: 2, done: false}
+iterator.next() // {value: 3, done: false}
+iterator.next() // {value: undefined, done: true}
+</code></pre><h4 id="创建可迭代对象"><a href="#创建可迭代对象" class="headerlink" title="创建可迭代对象"></a>创建可迭代对象</h4><p>同样，可以一通过Symbol.iterator来将一个非迭代对象转换成迭代对象</p>
+<pre><code>var collections = {
+  items: [],
+  *[Symbol.iterator]() {
+    for (var x of this.items) {
+      yield x;
+    }
+  }
+}
+collections.items.push(1);
+collections.items.push(3);
+collections.items.push(32);
+for (var x of collections) {
+  console.log(x);
+}
+// 1
+// 3
+// 32
+</code></pre><h2 id="内置迭代器"><a href="#内置迭代器" class="headerlink" title="内置迭代器"></a>内置迭代器</h2><p>在ES6中很多内建类型都有自己的内建迭代器，只有内建迭代器不能满足要求的时候才需要再去创建自己的迭代器</p>
+<h4 id="集合对象的迭代器和默认迭代器"><a href="#集合对象的迭代器和默认迭代器" class="headerlink" title="集合对象的迭代器和默认迭代器"></a>集合对象的迭代器和默认迭代器</h4><p>在ES6中，数组、Set和Map都有自己的内置迭代器，分别是entries，values和keys.<br>entries(): 返回一个迭代器，其值是键值对<br>keys(): 返回一个迭代器，值是键值对的键值<br>values(): 返回一个迭代器，值是键值对的值</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>entries</th>
+<th>keys</th>
+<th>values</th>
+<th>defualt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数组</td>
+<td>[index, Array[index]]:返回数组序号和数组这一项的值</td>
+<td>index: 返回数组每一项的序号值</td>
+<td>Array[index]返回每一项的数组的值</td>
+<td>返回值与调用values一样</td>
+</tr>
+<tr>
+<td>Set集合</td>
+<td>[value, value]返回Set中每一项重复两遍组成的数组</td>
+<td>返回Set集合中每一项返回的值</td>
+<td>返回Set集合中每一项返回的值</td>
+<td>与values的返回值一样</td>
+</tr>
+<tr>
+<td>Map集合</td>
+<td>返回每一项的[key, value]</td>
+<td>返回每一项的key</td>
+<td>返回每一项的value</td>
+<td>与entries返回值一致</td>
+</tr>
+</tbody>
+</table>
+<pre><code>var array = [&apos;a&apos;, &apos;b&apos;, &apos;c&apos;];
+var set = new Set([1, 2, 3]);
+var map = new Map([[&apos;name&apos;, &apos;Shirley&apos;], [&apos;age&apos;, &apos;secret&apos;]]);
+
+for (var item of array.entries()) {
+  console.log(item)
+}
+// [0, &apos;a&apos;]
+// [1, &apos;b&apos;]
+// [2, &apos;b&apos;]
+
+ for (var item of array.keys()) {
+  console.log(item)
+}
+// 0
+// 1
+// 2
+
+for (var item of array) {
+  console.log(item)
+}
+// a
+// b
+// c
+
+for (var item of set.entries()) {
+  console.log(item)
+}
+// [1, 1]
+// [2, 2]
+// [3, 3]
+
+for (var item of set.keys()) {
+  console.log(item)
+}
+// 1
+// 2
+// 3
+
+for (var item of set.values()) {
+  console.log(item)
+}
+// 1
+// 2
+// 3
+
+for (var item of set) {
+  console.log(item)
+}
+// 1
+// 2
+// 3
+
+for (var item of map.entries()) {
+  console.log(item)
+}
+// [&quot;name&quot;, &quot;Shirley&quot;]
+// [&quot;age&quot;, &quot;secret&quot;]
+
+for (var item of map) {
+  console.log(item)
+}
+// [&quot;name&quot;, &quot;Shirley&quot;]
+// [&quot;age&quot;, &quot;secret&quot;]
+
+for (var item of map.keys()) {
+  console.log(item)
+}
+// name
+// age
+
+for (var item of map.values()) {
+  console.log(item)
+}
+// Shirley
+// secret
+</code></pre><h4 id="字符串迭代器"><a href="#字符串迭代器" class="headerlink" title="字符串迭代器"></a>字符串迭代器</h4><p>返回字符串的每一个字符，如果是双字节字符则不会返回两个而是一个。</p>
+<h4 id="NodeList迭代器"><a href="#NodeList迭代器" class="headerlink" title="NodeList迭代器"></a>NodeList迭代器</h4><p>DOM标准中的NodeList也有了默认迭代器<br>    var divs = document.getElementsByTagName(“div”);</p>
+<pre><code>for (var div of divs) {
+  console.log(div.id);
+}
+</code></pre><h2 id="展开运算符和非数组可迭代对象"><a href="#展开运算符和非数组可迭代对象" class="headerlink" title="展开运算符和非数组可迭代对象"></a>展开运算符和非数组可迭代对象</h2><p>数组可以使用展开运算符将值展开，同样的非数组的可迭代对象也可以使用展开运算符。</p>
+<pre><code>var set = new Set([1, 2, 3]);
+var map = new Map([[&apos;name&apos;, &apos;Shirley&apos;], [&apos;age&apos;, &apos;secret&apos;]]);
+var arr1 = [...set];
+// arr1 = [1, 2, 3];
+var arr2 = [...map];
+// arr2 = [[&apos;name&apos;, &apos;Shirley&apos;], [&apos;age&apos;, &apos;secret&apos;]]
+</code></pre><p>NodeList可以使用展开运算符</p>
+<p>##高级迭代器功能</p>
+<h4 id="给迭代器传递参数"><a href="#给迭代器传递参数" class="headerlink" title="给迭代器传递参数"></a>给迭代器传递参数</h4><pre><code>var createIterator = function *()  {
+  var result1 = yield 1;
+  var result2 = yield result1 + 2;
+  var result3 = yield result2 + 4;
+}
+var iterator = createIterator();
+iterator.next(); // {value: 1, done: false}
+iterator.next(4); // {value: 6, done: false}
+iterator.next(4); // {value: 8, done: false}
+</code></pre><p>当第一次调用next方法的时候，是执行到蓝色字体所在的位置就暂停了。注意这个时候即使传入参数也不会有什么作用。<br>var result1 = <font color="#7FFFD4">yield 1</font>;</p>
+<p>第二次调用next方法的时候，也是接着蓝色的地方开始执行的，yield返回的值，即调用next的时候传入的值赋给result1。然后执行完红色的部分的yield就停止。<br>如果这个时候调用next的时候不传入任何值，那么就会返回undefined。然后undefined + 2 =&gt; NaN。所以返回值为{value: NaN, done: false}。</p>
+<p><font color="#F00">var result1 = </font> <font color="#7FFFD4">yield 1</font>;<br>var result2 = <font color="#F00"> yield result1 + 2 </font>;</p>
+<h4 id="在迭代器中抛出错误"><a href="#在迭代器中抛出错误" class="headerlink" title="在迭代器中抛出错误"></a>在迭代器中抛出错误</h4><p>迭代器可以调用throw方法，当其恢复执行的时候可以主动抛出错误。<br>    var createIterator = function *()  {<br>      var result1 = yield 1;<br>      var result2;<br>      try {<br>        result2 = yield result1 + 3;<br>      } catch(error) {<br>        result2 = 5;<br>      }</p>
+<pre><code>  yield result2 + 4;
+}
+var iterator = createIterator();
+iterator.next(); // {value: 1, done: false}
+iterator.throw(new Error(&apos;Oops...&apos;)); // 会抛出错误停止执行
+iterator.next(); // {value: undefined, done: true}
+</code></pre><p>当iterator.throw()之后，迭代器抛再次执行时，即执行var result1赋值的时候就会报错，停止代码的执行。</p>
+<pre><code>var iterator = createIterator();
+iterator.next(); // {value: 1, done: false}
+iterator.next(0); // {value: 3, done: false}
+iterator.throw(new Error(&apos;Oops...&apos;)); // {value: 9, done: false}
+iterator.next(); // {value: undefined, done: true}
+</code></pre><p>此时当抛出错误的时候，迭代器会继续执行result2的赋值，因为捕获到了错误因此，会执行result2 = 5的赋值，从而可以执行后面的代码。<br>因此如果对错误的捕获处理正确的话，throw()和next()一样也会返回一条语句。</p>
+<h4 id="生成器返回语句"><a href="#生成器返回语句" class="headerlink" title="生成器返回语句"></a>生成器返回语句</h4><p>生成器中可以像函数一样调用return语句返回一个返回值。而且也是会中断后面的代码。在for-of的循环中，迭代器会忽略return返回的值。</p>
+<pre><code>function *createIterator() {
+ yield 1;
+ return 5;
+ yield 4;
+}
+var iterator = createIterator();
+iterator.next(); //{value: 1, done: false}
+iterator.next(); //{value: 5, done: true}
+iterator.next(); //{value: undefined, done: true}
+</code></pre><p>但是要注意，return只会返回一次。后面再次调用next方法，就只会返回undefined的了。</p>
+<h4 id="委托生成器"><a href="#委托生成器" class="headerlink" title="委托生成器"></a>委托生成器</h4><p>某些情况下，需要将两个生成器组合才能形成一个新的生成器。这个时候需要再yield语句和生成器函数名之间调用*将生成数据的过程委托给其它的生成器。</p>
+<pre><code>function *createNumberIterator() {
+  yield 1;
+  yield 2;
+  return 3;
+}
+function *createRepeatingIterator(count) {
+  for(let i = 0; i &lt; count; i++) {
+    yield &quot;repeat&quot;; 
+  } 
+}
+function *createCombinedIterator (){
+  var result = yield *createNumberIterator();
+  yield *createRepeatingIterator(result);
+}
+var iterator = createCombinedIterator();
+iterator.next(); //{value: 1, done: false}
+iterator.next(); //{value: 2, done: false}
+iterator.next(); //{value: &apos;repeat&apos;, done: false}
+iterator.next(); //{value: &apos;repeat&apos;, done: false}
+iterator.next(); //{value: &apos;repeat&apos;, done: false}
+iterator.next(); //{value: undefined, done: true}
+</code></pre><p>要注意的是，return的值并不会被返回。除非在代码中yield出来。</p>
+<h2 id="异步任务执行"><a href="#异步任务执行" class="headerlink" title="异步任务执行"></a>异步任务执行</h2><pre><code>// taskDef是一个生成器
+function run(taskDef) {
+  // 首先创建一个迭代器
+  var task = taskDef();
+  // 先调用一次迭代器
+  var result = task.next();
+
+  function step() {
+    // 首先判定一下迭代器是否已经调用结束了
+    if(!result.done) {
+      // 判断result的value值是否是一个函数
+      if(typeof result.value === &apos;function&apos;) {
+        //result.value应该是一个异步执行的函数，向这个函数中传入一个回调函数
+        result.value(function(err, data)){
+          if(err) {
+            // 如果发生了错误，那么就用迭代器抛出错误并且停止函数的执行
+            task.throw(err);
+            return;
+          }
+          // 如果没有错误，则进行再一次调用迭代器
+          result = task.next(data);
+          step();
+        }
+      } else {
+        //如果result的value不是函数，那么就当做下一次的参数调用next方法，并将返回的结果赋值给result
+        result = task.next(result.value);
+        step();
+      }
+    }
+  }
+
+  // 调用step方法
+  step();
+
+}
+</code></pre>
           
         
       
@@ -391,7 +954,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
