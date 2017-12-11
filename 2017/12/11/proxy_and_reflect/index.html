@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Proxy构造函数接收两个参数，第一个是被代理的对象，第二个参数是处理程序。处理程序是包含一个或者多个陷阱的对象。 如果处理程序定义成一个空的对象的话，那么就是被代理的对象和代理之间的属性是相通的。 var target = {}; var proxy = new Proxy(target, {});  proxy.name = &amp;quot;proxy&amp;quot;; console.log(tar">
+<meta property="og:type" content="article">
+<meta property="og:title" content="代理和反射">
+<meta property="og:url" content="https://shirleylovecode.github.io/2017/12/11/proxy_and_reflect/index.html">
+<meta property="og:site_name" content="Shirley Blog">
+<meta property="og:description" content="Proxy构造函数接收两个参数，第一个是被代理的对象，第二个参数是处理程序。处理程序是包含一个或者多个陷阱的对象。 如果处理程序定义成一个空的对象的话，那么就是被代理的对象和代理之间的属性是相通的。 var target = {}; var proxy = new Proxy(target, {});  proxy.name = &amp;quot;proxy&amp;quot;; console.log(tar">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-12-11T14:21:25.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="代理和反射">
+<meta name="twitter:description" content="Proxy构造函数接收两个参数，第一个是被代理的对象，第二个参数是处理程序。处理程序是包含一个或者多个陷阱的对象。 如果处理程序定义成一个空的对象的话，那么就是被代理的对象和代理之间的属性是相通的。 var target = {}; var proxy = new Proxy(target, {});  proxy.name = &amp;quot;proxy&amp;quot;; console.log(tar">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://shirleylovecode.github.io/2017/12/11/proxy_and_reflect/"/>
+
+
+
+
+
+  <title>代理和反射 | Shirley Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Shirley Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://shirleylovecode.github.io/2017/12/11/proxy_and_reflect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Shirley Yang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shirley Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">代理和反射</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-11T22:20:54+08:00">
+                2017-12-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Proxy构造函数接收两个参数，第一个是被代理的对象，第二个参数是处理程序。处理程序是包含一个或者多个陷阱的对象。</p>
+<p>如果处理程序定义成一个空的对象的话，那么就是被代理的对象和代理之间的属性是相通的。</p>
+<pre><code>var target = {};
+var proxy = new Proxy(target, {});
+
+proxy.name = &quot;proxy&quot;;
+console.log(target.name); // &quot;proxy&quot;
+target.name = &quot;target&quot;;
+console.log(proxy.name); // &quot;target&quot;
+</code></pre><p>代理中的set陷阱<br>set陷阱接受四个参数： trapTarget, key, value, receiver.<br>返回值是true/fasle，根据是否成功设置该属性。</p>
+<p>例如想保证target中新创建的属性的值都是数字类型：<br>    var target = {<br>        name: “target”<br>    };</p>
+<pre><code>var proxy = new Proxy(target, {
+    set(trapTarget, key, value, receiver) {
+        if(!trapTarget.hasOwnProperty(key)){
+            if(isNaN(value)) {
+                throw new TypeError(&apos;property must be a number&apos;);
+            }
+        }
+
+        return Reflect.set(trapTarget, key, value, receiver);
+    }
+})
+
+proxy.name = &quot;proxy&quot;;
+console.log(target.name); // &quot;proxy&quot;
+proxy.age = &quot;secret&quot;; // TypeError
+proxy.age = 33;
+console.log(target.age) //33
+target.age = &quot;secret&quot;;
+console.log(proxy.age) // &quot;secret&quot;
+// 要注意，处理程序中的陷阱是针对proxy起作用的，对于target对象没有影响
+</code></pre><h4 id="代理中的get"><a href="#代理中的get" class="headerlink" title="代理中的get"></a>代理中的get</h4><pre><code>在JS中，访问一个对象的属性，即使这个属性不存在，也不会报错，只是会返回undefined。如果想避免这种情况，想让属性值不存在的时候直接报错，可以用过代理来实现。
+
+get的陷阱函数接受trapTarget, key两个参数。
+Reflect.get的返回值是该属性的的值。
+
+var target = {
+    name: &apos;target&apos;,
+}
+
+var proxy = new Proxy(target, {
+    get(trapTarget, key, receiver) {
+        if( !(key in receiver) ) {
+            throw new TypeError(key + &apos; is not exit&apos;);
+        }
+        return Reflect.get(trapTarget, key, receiver);
+    }
+})
+</code></pre><p>注意： 用in操作符判断某个属性是否存在的时候，是用receiver来访问的，而不是用trapTarget来访问，这是为了避免有has陷阱。（比如，通过has陷阱将name屏蔽掉了，那么应该proxy调用name的时候是报错的，但是如果对trapTarget使用in操作符，就能够访问到name，这是不对的）</p>
+<h4 id="代理中的has陷阱"><a href="#代理中的has陷阱" class="headerlink" title="代理中的has陷阱"></a>代理中的has陷阱</h4><p>用has陷阱可以屏蔽到一些属性.<br>has接受两个参数（trapTarget, key）<br>Reflect.has返回值是true或者false</p>
+<pre><code>var target = { name: &apos;Shirley&apos;, career: &apos;FE&apos;};
+var proxy = new Proxy(target, {
+    has(trapTarget, key) {
+        if(key === &apos;name&apos;) {
+            return false;
+        }
+        return Reflect.has(trapTarget, key)
+    }
+})
+
+&apos;name&apos; in proxy // false;
+&apos;career&apos; in proxy // true;
+</code></pre><h4 id="代理中的deleteProperty陷阱"><a href="#代理中的deleteProperty陷阱" class="headerlink" title="代理中的deleteProperty陷阱"></a>代理中的deleteProperty陷阱</h4><p>delete操作符可以将对象的属性删除，如果操作成功，返回true，否则会返回false。<br>但是注意的是, delete删除的属性如果是nonconfigurable的属性，那么在严格模式下会报错，在非严格模式下回返回false。</p>
+<pre><code>var object = {
+    name: &apos;Shirley&apos;,
+    value: 32,
+}
+Object.defineProperty(object, &apos;name&apos;, { configurable: false });
+
+delete object.value; // true;
+delete object.name; // false;
+</code></pre><p>当对代理使用delete操作符时，会触发deleteProperty陷阱。deleteProperty应该传入的参数分别是trapTarget，key。例如：</p>
+<pre><code>var object = {
+    name: &apos;Shirley&apos;,
+    value: 32,
+};
+
+Object.defineProperty(object, &apos;name&apos;, { configurable: false });
+
+var proxy = new Proxy(object, {
+    deleteProperty (trapTarget, key) {
+        if (key === &apos;name&apos;) {
+            return false;
+        }
+        return Reflect.deleteProperty(trapTarget, key);
+    }
+})
+</code></pre><h4 id="代理中原型陷阱"><a href="#代理中原型陷阱" class="headerlink" title="代理中原型陷阱"></a>代理中原型陷阱</h4><p>ES6中，对原型的操作有Object.setPrototypeOf和Object.getPrototypeOf两种不同的方法。对应的原型陷阱也有setProtoypeOf和getProtoype两种。<br>其中，setPrototypeOf的参数是（trapTarget, proto）。而getPrototypeOf的参数则是（trapTarget）。</p>
+<h6 id="原型代理陷阱的运行机制"><a href="#原型代理陷阱的运行机制" class="headerlink" title="原型代理陷阱的运行机制"></a>原型代理陷阱的运行机制</h6><p>getPrototypeOf的返回值只能是对象或者null，如果返回的基本类型的值就会报错。<br>setPrototypeOf的返回值只要不是false就代表设置成功。<br>因此，可以通过getPrototypeOf和setPrototypeOf将原型隐藏起来。</p>
+<pre><code>var target = {
+    name: &apos;shirley&apos;,
+};
+
+var proxy = new Proxy(target, {
+    getPrototypeOf(trapTarget) {
+        return null;
+    },
+    setPrototypeOf(trapTarget, proto) {
+        return false;
+    },
+});
+
+Object.getPrototypeOf(proxy); // null
+Object.setPrototypeOf(proxy, {}); //会报错
+</code></pre><p>如果想使用这两个陷阱的默认行为，可以使用Reflect.setPrototypeOf和Reflect.getPrototypeOf这两种方法。</p>
+<pre><code>var proxy = new Proxy(target, {
+    getPrototypeOf(trapTarget) {
+        return Reflect.getPrototypeOf(trapTarget);
+    },
+    setPrototypeOf(trapTarget, proto) {
+        return Reflect.setPrototypeOf(trapTarget, proto);
+    },
+});
+</code></pre><h6 id="为什么有两组方法"><a href="#为什么有两组方法" class="headerlink" title="为什么有两组方法"></a>为什么有两组方法</h6><p>Object.setPrototypeOf、 Object.getPrototypeOf 这一组方法和 Reflect.setPrototypeOf、Reflect.getPrototypeOf 这一组方法还是有一定差别的。</p>
+<p>例如，如果Object.getPrototypeOf中传入了一个不是对象的值，会首先将这个值转换成一个对象，然后进行后续的操作。但是在Reflect中则会直接报错。</p>
+<pre><code>var numberProto = Object.getPrototypeOf(1);
+numberProto === Number.prototype // true;
+
+Reflect.getPrototypeOf(1); //报错
+</code></pre><p>Object.setPrototypeOf()方法失败的话，会返回错误，如果成功的话会返回第一个参数。Reflect.setPrototypeOf()方法成功会返回true, 失败会返回false。</p>
+<pre><code>var target1 = {};
+var result1 = Object.setPrototypeOf(target1, {});
+console.log(result1 === target1); // true
+
+var target2 = {};
+var result2 = Reflect.setPrototypeOf(target2, {});
+console.log(result2); // true
+</code></pre><p>在代理上使用Object/Reflect两个方法都会触发setPrototypeOf和getPrototypeOf两个陷阱</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/30/类/" rel="next" title="类">
+                <i class="fa fa-chevron-left"></i> 类
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Shirley Yang</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#代理中的get"><span class="nav-number">1.</span> <span class="nav-text">代理中的get</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代理中的has陷阱"><span class="nav-number">2.</span> <span class="nav-text">代理中的has陷阱</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代理中的deleteProperty陷阱"><span class="nav-number">3.</span> <span class="nav-text">代理中的deleteProperty陷阱</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代理中原型陷阱"><span class="nav-number">4.</span> <span class="nav-text">代理中原型陷阱</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#原型代理陷阱的运行机制"><span class="nav-number">4.0.1.</span> <span class="nav-text">原型代理陷阱的运行机制</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#为什么有两组方法"><span class="nav-number">4.0.2.</span> <span class="nav-text">为什么有两组方法</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Shirley Yang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
